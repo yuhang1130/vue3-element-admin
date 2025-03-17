@@ -3,19 +3,13 @@
     <!-- 桌面端显示 -->
     <template v-if="isDesktop">
       <!-- 搜索 -->
-      <MenuSearch />
+      <!-- <MenuSearch /> -->
 
       <!-- 全屏 -->
       <Fullscreen />
 
       <!-- 布局大小 -->
       <SizeSelect />
-
-      <!-- 语言选择 -->
-      <LangSelect />
-
-      <!-- 消息通知 -->
-      <Notification />
     </template>
 
     <!-- 用户头像（个人中心、注销登录等） -->
@@ -27,10 +21,10 @@
       <template #dropdown>
         <el-dropdown-menu>
           <el-dropdown-item @click="handleProfileClick">
-            {{ $t("navbar.profile") }}
+            {{ "个人中心" }}
           </el-dropdown-item>
           <el-dropdown-item divided @click="logout">
-            {{ $t("navbar.logout") }}
+            {{ "注销登出" }}
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -47,7 +41,6 @@ import defaultSettings from "@/settings";
 import { DeviceEnum } from "@/enums/DeviceEnum";
 import { useAppStore, useSettingsStore, useUserStore, useTagsViewStore } from "@/store";
 
-import Notification from "./Notification.vue";
 import { SidebarLightThemeEnum, ThemeEnum } from "@/enums/ThemeEnum";
 
 const appStore = useAppStore();

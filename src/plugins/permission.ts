@@ -34,8 +34,9 @@ export function setupPermission() {
         } else {
           try {
             // 生成动态路由
-            const dynamicRoutes = await permissionStore.generateRoutes();
-            dynamicRoutes.forEach((route: RouteRecordRaw) => router.addRoute(route));
+            await permissionStore.generateRoutes();
+            // const dynamicRoutes = await permissionStore.generateRoutes();
+            // dynamicRoutes.forEach((route: RouteRecordRaw) => router.addRoute(route));
             next({ ...to, replace: true });
           } catch (error) {
             console.error(error);
@@ -74,7 +75,7 @@ function redirectToLogin(to: RouteLocationNormalized, next: NavigationGuardNext)
 
 /** 判断是否有权限 */
 export function hasAuth(value: string | string[], type: "button" | "role" = "button") {
-  const { roles, perms } = useUserStore().userInfo;
+  const { roles = [], perms = [] } = useUserStore().userInfo;
 
   // 超级管理员 拥有所有权限
   if (type === "button" && roles.includes("ROOT")) {

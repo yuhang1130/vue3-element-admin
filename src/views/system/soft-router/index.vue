@@ -2,15 +2,7 @@
   <div class="app-container">
     <div class="search-bar">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-        <el-form-item prop="word" label="关键字">
-          <el-input
-            v-model="queryParams.word"
-            placeholder="用户名/昵称"
-            clearable
-            @keyup.enter="handleQuery"
-          />
-        </el-form-item>
-        <el-form-item prop="status" label="用户状态">
+        <el-form-item prop="status" label="路由状态">
           <el-select v-model="queryParams.status" class="!w-[100px]" clearable placeholder="全部">
             <el-option :value="1" label="正常" />
             <el-option :value="2" label="禁用" />
@@ -40,27 +32,8 @@
       >
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="ID" prop="id" width="140" />
-        <el-table-column label="用户名" prop="username" width="140" />
-        <el-table-column label="昵称" prop="nickname" width="140" />
-        <el-table-column label="角色" prop="type" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.type === UserType.SuperAdmin ? 'warning' : 'primary'">
-              {{ renderType(scope.row.type) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" prop="status" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === EntityStatus.Normal ? 'primary' : 'warning'">
-              {{ renderStatus(scope.row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="添加时间" prop="createdAt" width="150">
-          <template #default="scope">
-            {{ dayjs(+scope.row.createdAt * 1000).format("YYYY/MM/DD HH:mm:ss") }}
-          </template>
-        </el-table-column>
+        <el-table-column label="Host" prop="host" width="140" />
+        <el-table-column label="Port" prop="port" width="100" />
         <el-table-column label="操作" align="center" width="150">
           <template #default="scope">
             <el-button
@@ -98,13 +71,16 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "User",
+  name: "SoftRouter",
   inheritAttrs: false,
 });
 
 import dayjs from "dayjs";
 import { EntityStatus } from "../../../api/common";
-import UserAPI, { UserListParam, UserListResult, UserType } from "../../../api/system/user";
+import SoftRouterAPI, {
+  SoftRouterListParam,
+  SoftRouterListResult,
+} from "../../../api/system/soft-router";
 
 const queryFormRef = ref();
 
@@ -112,39 +88,18 @@ const ids = ref<string[]>([]);
 const loading = ref(false);
 const total = ref(0);
 
-const queryParams = reactive<UserListParam>({
+const queryParams = reactive<SoftRouterListParam>({
   page: 1,
   size: 20,
   word: "",
   status: EntityStatus.Normal,
 });
 
-const pageData = ref<UserListResult[]>();
+const pageData = ref<SoftRouterListResult[]>();
 
-function renderStatus(status: EntityStatus) {
-  switch (status) {
-    case EntityStatus.Normal:
-      return "正常";
-    case EntityStatus.Disable:
-      return "禁用";
-    default:
-      return "未知";
-  }
-}
-
-function renderType(type: UserType) {
-  switch (type) {
-    case UserType.Admin:
-      return "管理员";
-    case UserType.SuperAdmin:
-      return "超级管理员";
-    default:
-      return "未知";
-  }
-}
 function handleQuery() {
   loading.value = true;
-  UserAPI.list(queryParams)
+  SoftRouterAPI.list(queryParams)
     .then((data) => {
       pageData.value = data.list;
       total.value = data.total;

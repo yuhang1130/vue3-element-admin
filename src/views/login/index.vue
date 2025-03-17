@@ -10,7 +10,7 @@
           inactive-icon="Sunny"
           @change="toggleTheme"
         />
-        <lang-select class="ml-2 cursor-pointer" />
+        <!-- <lang-select class="ml-2 cursor-pointer" /> -->
       </div>
     </div>
 
@@ -30,14 +30,11 @@
                 <el-dropdown-item>
                   <el-tag>{{ defaultSettings.version }}</el-tag>
                 </el-dropdown-item>
-                <el-dropdown-item @click="setLoginCredentials('root', '123456')">
-                  超级管理员：root/123456
+                <el-dropdown-item @click="setLoginCredentials('heyuhang', 'hyh123456')">
+                  超级管理员：heyuhang/hyh123456
                 </el-dropdown-item>
-                <el-dropdown-item @click="setLoginCredentials('admin', '123456')">
-                  系统管理员：admin/123456
-                </el-dropdown-item>
-                <el-dropdown-item @click="setLoginCredentials('test', '123456')">
-                  测试小游客：test/123456
+                <el-dropdown-item @click="setLoginCredentials('admin', 'admin123')">
+                  系统管理员：admin/admin123
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -53,7 +50,7 @@
             <el-input
               ref="username"
               v-model="loginFormData.username"
-              :placeholder="$t('login.username')"
+              :placeholder="t('login.username')"
               name="username"
               size="large"
               class="h-[48px]"
@@ -62,7 +59,7 @@
         </el-form-item>
 
         <!-- 密码 -->
-        <el-tooltip :visible="isCapslock" :content="$t('login.capsLock')" placement="right">
+        <el-tooltip :visible="isCapslock" :content="t('login.capsLock')" placement="right">
           <el-form-item prop="password">
             <div class="input-wrapper">
               <el-icon class="mx-2">
@@ -70,7 +67,7 @@
               </el-icon>
               <el-input
                 v-model="loginFormData.password"
-                :placeholder="$t('login.password')"
+                :placeholder="t('login.password')"
                 type="password"
                 name="password"
                 size="large"
@@ -87,27 +84,25 @@
         <el-form-item prop="captchaCode">
           <div class="input-wrapper">
             <div class="i-svg:captcha mx-2" />
-
             <el-input
               v-model="loginFormData.captchaCode"
               auto-complete="off"
               size="large"
               class="flex-1"
-              :placeholder="$t('login.captchaCode')"
+              :placeholder="t('login.captchaCode')"
               @keyup.enter="handleLoginSubmit"
             />
-
-            <el-image :src="captchaBase64" class="captcha-img" @click="getCaptcha" />
+            <div class="captcha-img" @click="getCaptcha" v-html="captchaBase64" />
           </div>
         </el-form-item>
 
         <div class="flex-x-between w-full py-1">
           <el-checkbox>
-            {{ $t("login.rememberMe") }}
+            {{ t("login.rememberMe") }}
           </el-checkbox>
 
           <el-link type="primary" href="/forget-password">
-            {{ $t("login.forgetPassword") }}
+            {{ t("login.forgetPassword") }}
           </el-link>
         </div>
 
@@ -119,28 +114,9 @@
           class="w-full"
           @click.prevent="handleLoginSubmit"
         >
-          {{ $t("login.login") }}
+          {{ t("login.login") }}
         </el-button>
-
-        <!-- 第三方登录 -->
-        <el-divider>
-          <el-text size="small">{{ $t("login.otherLoginMethods") }}</el-text>
-        </el-divider>
-        <div class="third-party-login">
-          <div class="i-svg:wechat" />
-          <div class="i-svg:qq" />
-          <div class="i-svg:github" />
-          <div class="i-svg:gitee" />
-        </div>
       </el-form>
-    </div>
-
-    <!-- 登录页底部 -->
-    <div class="login-footer">
-      <el-text size="small">
-        Copyright © 2021 - 2025 youlai.tech All Rights Reserved.
-        <a href="http://beian.miit.gov.cn/" target="_blank">皖ICP备20006496号-2</a>
-      </el-text>
     </div>
   </div>
 </template>
@@ -149,7 +125,6 @@
 import { LocationQuery, useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 
-import AuthAPI, { type LoginFormData } from "@/api/auth";
 import router from "@/router";
 
 import type { FormInstance } from "element-plus";
@@ -157,11 +132,11 @@ import type { FormInstance } from "element-plus";
 import defaultSettings from "@/settings";
 import { ThemeEnum } from "@/enums/ThemeEnum";
 
-import { useSettingsStore, useUserStore, useDictStore } from "@/store";
+import { useSettingsStore, useUserStore } from "@/store";
+import UserAPI, { LoginData } from "../../api/system/user";
 
 const userStore = useUserStore();
 const settingsStore = useSettingsStore();
-const dictStore = useDictStore();
 
 const route = useRoute();
 const { t } = useI18n();
@@ -172,9 +147,9 @@ const loading = ref(false); // 按钮 loading 状态
 const isCapslock = ref(false); // 是否大写锁定
 const captchaBase64 = ref(); // 验证码图片Base64字符串
 
-const loginFormData = ref<LoginFormData>({
-  username: "admin",
-  password: "123456",
+const loginFormData = ref<LoginData>({
+  username: "",
+  password: "",
   captchaKey: "",
   captchaCode: "",
 });
@@ -210,9 +185,8 @@ const loginRules = computed(() => {
   };
 });
 
-// 获取验证码
 function getCaptcha() {
-  AuthAPI.getCaptcha().then((data) => {
+  UserAPI.getCaptcha().then((data) => {
     loginFormData.value.captchaKey = data.captchaKey;
     captchaBase64.value = data.captchaBase64;
   });
@@ -228,7 +202,7 @@ async function handleLoginSubmit() {
         .then(async () => {
           await userStore.getUserInfo();
           // 需要在路由跳转前加载字典数据，否则会出现字典数据未加载完成导致页面渲染异常
-          await dictStore.loadDictionaries();
+          // await dictStore.loadDictionaries();
           // 跳转到登录前的页面
           const { path, queryParams } = parseRedirect();
           router.push({ path: path, query: queryParams });
@@ -262,7 +236,6 @@ function parseRedirect(): {
   url.searchParams.forEach((value, key) => {
     queryParams[key] = value;
   });
-
   return { path, queryParams };
 }
 
@@ -334,7 +307,7 @@ onMounted(() => {
     border-radius: 5px;
     box-shadow: var(--el-box-shadow-light);
 
-    @media (width <= 460px) {
+    @media (width <=460px) {
       width: 100%;
       padding: 20px;
     }

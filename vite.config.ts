@@ -9,11 +9,11 @@ import mockDevServerPlugin from "vite-plugin-mock-dev-server";
 
 import UnoCSS from "unocss/vite";
 import { resolve } from "path";
-import { name, version, engines, dependencies, devDependencies } from "./package.json";
+import { name, version, dependencies, devDependencies } from "./package.json";
 
 // 平台的名称、版本、运行所需的 node 版本、依赖、构建时间的类型提示
 const __APP_INFO__ = {
-  pkg: { name, version, engines, dependencies, devDependencies },
+  pkg: { name, version, dependencies, devDependencies },
   buildTimestamp: Date.now(),
 };
 
@@ -44,13 +44,14 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       port: +env.VITE_APP_PORT,
       open: true,
       proxy: {
-        // 代理 /dev-api 的请求
         [env.VITE_APP_BASE_API]: {
           changeOrigin: true,
-          // 代理目标地址：https://api.youlai.tech
           target: env.VITE_APP_API_URL,
           rewrite: (path) => path.replace(new RegExp("^" + env.VITE_APP_BASE_API), ""),
         },
+      },
+      hmr: {
+        overlay: false,
       },
     },
     plugins: [
@@ -96,7 +97,6 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         "pinia",
         "axios",
         "@vueuse/core",
-        "sortablejs",
         "exceljs",
         "path-to-regexp",
         "echarts/core",

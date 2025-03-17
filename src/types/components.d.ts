@@ -61,7 +61,6 @@ declare module "vue" {
     ElUpload: (typeof import("element-plus/es"))["ElUpload"];
     ElWatermark: (typeof import("element-plus/es"))["ElWatermark"];
     ElSkeleton: (typeof import("element-plus/es"))["ElSkeleton"];
-    FileUpload: (typeof import("./../components/Upload/FileUpload.vue"))["default"];
     Form: (typeof import("./../components/CURD/Form.vue"))["default"];
     Fullscreen: (typeof import("./../components/Fullscreen/index.vue"))["default"];
     GithubCorner: (typeof import("./../components/GithubCorner/index.vue"))["default"];
@@ -69,7 +68,6 @@ declare module "vue" {
     IconSelect: (typeof import("./../components/IconSelect/index.vue"))["default"];
     LangSelect: (typeof import("./../components/LangSelect/index.vue"))["default"];
     MenuSearch: (typeof import("./../components/MenuSearch/index.vue"))["default"];
-    MultiImageUpload: (typeof import("./../components/Upload/MultiImageUpload.vue"))["default"];
     LayoutSelect: (typeof import("./../layout/components/Settings/components/LayoutSelect.vue"))["default"];
     PageContent: (typeof import("./../components/CURD/PageContent.vue"))["default"];
     PageForm: (typeof import("./../components/CURD/PageForm.vue"))["default"];
@@ -85,12 +83,10 @@ declare module "vue" {
     SidebarMenuItem: (typeof import("./../layout/components/Sidebar/components/SidebarMenuItem.vue"))["default"];
     SidebarMenuItemTitle: (typeof import("./../layout/components/Sidebar/components/SidebarMenuItemTitle.vue"))["default"];
     SidebarMixTopMenu: (typeof import("./../layout/components/Sidebar/components/SidebarMixTopMenu.vue"))["default"];
-    SingleImageUpload: (typeof import("./../components/Upload/SingleImageUpload.vue"))["default"];
     SizeSelect: (typeof import("./../components/SizeSelect/index.vue"))["default"];
     TableSelect: (typeof import("./../components/TableSelect/index.vue"))["default"];
     TagsView: (typeof import("./../layout/components/TagsView/index.vue"))["default"];
     ThemeColorPicker: (typeof import("./../layout/components/Settings/components/ThemeColorPicker.vue"))["default"];
-    WangEditor: (typeof import("./../components/WangEditor/index.vue"))["default"];
   }
   export interface ComponentCustomProperties {
     vLoading: (typeof import("element-plus/es"))["ElLoadingDirective"];

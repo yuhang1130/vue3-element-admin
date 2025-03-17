@@ -6,6 +6,7 @@ import {
   toggleDarkMode,
   toggleLightModeSidebarColorScheme,
 } from "@/utils/theme";
+import { LayoutEnum } from "../../enums/LayoutEnum";
 
 type SettingsValue = boolean | string;
 
@@ -22,7 +23,7 @@ export const useSettingsStore = defineStore("setting", () => {
     defaultSettings.sidebarColorScheme
   );
   // 布局
-  const layout = useStorage<string>("layout", defaultSettings.layout);
+  const layout = useStorage<LayoutEnum>("layout", defaultSettings.layout);
   // 水印
   const watermarkEnabled = useStorage<boolean>(
     "watermarkEnabled",
@@ -79,7 +80,7 @@ export const useSettingsStore = defineStore("setting", () => {
     themeColor.value = color;
   }
 
-  function changeLayout(val: string) {
+  function changeLayout(val: LayoutEnum) {
     layout.value = val;
   }
 

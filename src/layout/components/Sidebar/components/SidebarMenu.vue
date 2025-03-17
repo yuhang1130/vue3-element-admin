@@ -119,8 +119,6 @@ const onMenuClose = (index: string) => {
 /**
  * 监听菜单模式变化：当菜单模式切换为水平模式时，关闭所有展开的菜单项，
  * 避免在水平模式下菜单项显示错位。
- *
- * @see https://gitee.com/youlaiorg/vue3-element-admin/issues/IAJ1DR
  */
 watch(
   () => menuMode.value,

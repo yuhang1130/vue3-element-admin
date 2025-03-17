@@ -1,6 +1,6 @@
 {
-  "name": "vue3-element-admin",
-  "version": "2.23.0",
+  "name": "manage-admin",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -46,12 +46,11 @@
     "@element-plus/icons-vue": "^2.3.1",
     "@stomp/stompjs": "^7.0.0",
     "@vueuse/core": "^12.6.1",
-    "@wangeditor-next/editor": "^5.6.31",
-    "@wangeditor-next/editor-for-vue": "^5.1.14",
     "animate.css": "^4.1.1",
     "axios": "^1.7.9",
     "codemirror": "^5.65.18",
     "codemirror-editor-vue3": "^2.8.0",
+    "dayjs": "^1.11.13",
     "default-passive-events": "^2.0.0",
     "echarts": "^5.6.0",
     "element-plus": "^2.9.4",
@@ -62,7 +61,6 @@
     "path-to-regexp": "^8.2.0",
     "pinia": "^3.0.1",
     "qs": "^6.14.0",
-    "sortablejs": "^1.15.6",
     "vue": "^3.5.13",
     "vue-i18n": "^11.1.1",
     "vue-router": "^4.5.0"
@@ -78,7 +76,6 @@
     "@types/nprogress": "^0.2.3",
     "@types/path-browserify": "^1.0.3",
     "@types/qs": "^6.9.18",
-    "@types/sortablejs": "^1.15.8",
     "@typescript-eslint/eslint-plugin": "^8.24.0",
     "@typescript-eslint/parser": "^8.24.0",
     "@vitejs/plugin-vue": "^5.2.1",
@@ -114,11 +111,5 @@
     "vite-plugin-mock-dev-server": "^1.8.4",
     "vue-eslint-parser": "^9.4.3",
     "vue-tsc": "^2.2.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "repository": "https://gitee.com/youlaiorg/vue3-element-admin.git",
-  "author": "有来开源组织",
-  "license": "MIT"
+  }
 }

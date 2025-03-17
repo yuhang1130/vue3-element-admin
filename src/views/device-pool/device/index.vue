@@ -5,16 +5,25 @@
         <el-form-item prop="word" label="关键字">
           <el-input
             v-model="queryParams.word"
-            placeholder="用户名/昵称"
+            placeholder="设备名称/别名"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item prop="status" label="用户状态">
+        <el-form-item prop="status" label="设备状态">
           <el-select v-model="queryParams.status" class="!w-[100px]" clearable placeholder="全部">
-            <el-option :value="1" label="正常" />
-            <el-option :value="2" label="禁用" />
+            <el-option :value="50" label="使用中" />
+            <el-option :value="-10" label="已过期" />
+            <el-option :value="-50" label="已注销" />
           </el-select>
+        </el-form-item>
+        <el-form-item prop="instanceHost" label="板卡IP">
+          <el-input
+            v-model="queryParams.instanceHost"
+            placeholder="板卡IP搜索"
+            clearable
+            @keyup.enter="handleQuery"
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
@@ -40,27 +49,36 @@
       >
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column label="ID" prop="id" width="140" />
-        <el-table-column label="用户名" prop="username" width="140" />
-        <el-table-column label="昵称" prop="nickname" width="140" />
-        <el-table-column label="角色" prop="type" width="100">
+        <el-table-column label="板卡IP" prop="instanceHost" width="100" />
+        <el-table-column label="设备别名" prop="deviceAliases" width="120" />
+        <el-table-column label="设备名称" prop="deviceName" width="130" />
+        <el-table-column label="设备状态" prop="status" width="80">
           <template #default="scope">
-            <el-tag :type="scope.row.type === UserType.SuperAdmin ? 'warning' : 'primary'">
-              {{ renderType(scope.row.type) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" prop="status" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === EntityStatus.Normal ? 'primary' : 'warning'">
+            <el-tag :type="scope.row.status === 50 ? 'success' : 'info'">
               {{ renderStatus(scope.row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="添加时间" prop="createdAt" width="150">
+        <el-table-column label="设备厂商" prop="deviceManufacturer" width="65">
           <template #default="scope">
-            {{ dayjs(+scope.row.createdAt * 1000).format("YYYY/MM/DD HH:mm:ss") }}
+            <el-tag type="primary">{{ scope.row.deviceManufacturer }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="当前容器ID" prop="runningContainerId" width="140" />
+        <el-table-column label="当前容器Index" prop="runningContainerIndex" width="100" />
+        <el-table-column label="当前容器状态" prop="runningContainerState" width="90">
+          <template #default="scope">
+            <el-tag :type="renderStateType(scope.row.runningContainerState)">
+              {{ renderState(scope.row.runningContainerState) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="当前容器信息" prop="runningContainerStateMsg" width="90" />
+        <el-table-column label="中控地址" prop="controlNodeUrl" width="190" />
+        <el-table-column label="MYT服务地址" prop="mytSdkServerUrl" width="150" />
+        <el-table-column label="分配租户ID" prop="assignedTenantId" width="80" />
+        <el-table-column label="绑定中控状态" prop="boundStatus" width="90" />
+        <el-table-column label="所属软路由" prop="softRoute" width="150" />
         <el-table-column label="操作" align="center" width="150">
           <template #default="scope">
             <el-button
@@ -98,13 +116,16 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "User",
+  name: "Device",
   inheritAttrs: false,
 });
 
-import dayjs from "dayjs";
-import { EntityStatus } from "../../../api/common";
-import UserAPI, { UserListParam, UserListResult, UserType } from "../../../api/system/user";
+import DevicePoolAPI, {
+  DeviceListParam,
+  DeviceListResult,
+  DeviceStatus,
+  StateType,
+} from "../../../api/device-pool";
 
 const queryFormRef = ref();
 
@@ -112,39 +133,58 @@ const ids = ref<string[]>([]);
 const loading = ref(false);
 const total = ref(0);
 
-const queryParams = reactive<UserListParam>({
+const queryParams = reactive<DeviceListParam>({
   page: 1,
   size: 20,
   word: "",
-  status: EntityStatus.Normal,
+  // status: DeviceStatus.InUse,
+  instanceHost: "",
 });
 
-const pageData = ref<UserListResult[]>();
+const pageData = ref<DeviceListResult[]>();
 
-function renderStatus(status: EntityStatus) {
+function renderStatus(status: DeviceStatus) {
   switch (status) {
-    case EntityStatus.Normal:
-      return "正常";
-    case EntityStatus.Disable:
-      return "禁用";
+    case DeviceStatus.Expired:
+      return "已过期";
+    case DeviceStatus.InUse:
+      return "使用中";
+    case DeviceStatus.Revoked:
+      return "已注销";
     default:
       return "未知";
   }
 }
 
-function renderType(type: UserType) {
-  switch (type) {
-    case UserType.Admin:
-      return "管理员";
-    case UserType.SuperAdmin:
-      return "超级管理员";
+function renderState(state: StateType) {
+  switch (state) {
+    case StateType.Created:
+      return "已创建";
+    case StateType.Exited:
+      return "停止";
+    case StateType.Running:
+      return "正在运行";
     default:
       return "未知";
   }
 }
+
+function renderStateType(state: StateType) {
+  switch (state) {
+    case StateType.Created:
+      return "info";
+    case StateType.Exited:
+      return "danger";
+    case StateType.Running:
+      return "success";
+    default:
+      return "info";
+  }
+}
+
 function handleQuery() {
   loading.value = true;
-  UserAPI.list(queryParams)
+  DevicePoolAPI.deviceList(queryParams)
     .then((data) => {
       pageData.value = data.list;
       total.value = data.total;
@@ -159,6 +199,7 @@ function handleResetQuery() {
   queryParams.page = 1;
   queryParams.size = 20;
   queryParams.word = "";
+  queryParams.instanceHost = "";
   delete queryParams.status;
   handleQuery();
 }
@@ -168,6 +209,7 @@ onMounted(() => {
 });
 
 function handleAddClick() {
+  // TODO 新增接口
   ElMessage.success("待开发～");
 }
 

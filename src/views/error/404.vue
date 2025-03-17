@@ -5,12 +5,7 @@
     </div>
     <div class="bullshit">
       <div class="bullshit__oops">OOPS！</div>
-      <div class="bullshit__info">
-        该页面无法访问。
-        <a style="color: #20a0ff" href="https://www.youlai.tech.com" target="_blank">
-          有来开源官网
-        </a>
-      </div>
+      <div class="bullshit__info">该页面无法访问。</div>
       <div class="bullshit__headline">抱歉，您访问的页面不存在。</div>
       <div class="bullshit__info">请确认您输入的网址是否正确，或者点击下方按钮返回首页。</div>
       <a href="#" class="bullshit__return-home" @click.prevent="back">返回首页</a>

@@ -36,12 +36,6 @@
                   用户名
                 </template>
                 {{ userProfile.username }}
-                <el-icon v-if="userProfile.gender === 1" class="align-middle color-blue">
-                  <Male />
-                </el-icon>
-                <el-icon v-else class="align-middle color-pink">
-                  <Female />
-                </el-icon>
               </el-descriptions-item>
               <el-descriptions-item>
                 <template #label>
@@ -59,17 +53,10 @@
               </el-descriptions-item>
               <el-descriptions-item>
                 <template #label>
-                  <div class="i-svg:tree" />
-                  部门
-                </template>
-                {{ userProfile.deptName }}
-              </el-descriptions-item>
-              <el-descriptions-item>
-                <template #label>
                   <div class="i-svg:role" />
                   角色
                 </template>
-                {{ userProfile.roleNames }}
+                {{ userProfile.type === 1 ? "超级管理员" : "管理员" }}
               </el-descriptions-item>
 
               <el-descriptions-item>
@@ -77,7 +64,7 @@
                   <el-icon class="align-middle"><Timer /></el-icon>
                   创建日期
                 </template>
-                {{ userProfile.createTime }}
+                {{ dayjs(+userProfile.createdAt * 1000).format("YYYY/MM/DD HH:mm:ss") }}
               </el-descriptions-item>
             </el-descriptions>
           </el-card>
@@ -92,7 +79,7 @@
             <el-col :span="16">
               <div class="font-bold">账户密码</div>
               <div class="text-14px mt-2">
-                定期修改密码有助于保护账户安全
+                修改密码
                 <el-button
                   type="primary"
                   plain
@@ -177,9 +164,6 @@
         <el-form-item label="昵称">
           <el-input v-model="userProfileForm.nickname" />
         </el-form-item>
-        <el-form-item label="性别">
-          <Dict v-model="userProfileForm.gender" code="gender" />
-        </el-form-item>
       </el-form>
 
       <!-- 修改密码 -->
@@ -254,19 +238,28 @@
 </template>
 
 <script lang="ts" setup>
-import UserAPI, {
-  UserProfileVO,
-  PasswordChangeForm,
-  MobileUpdateForm,
-  EmailUpdateForm,
-  UserProfileForm,
-} from "@/api/system/user";
-
-import FileAPI from "@/api/file";
+import dayjs from "dayjs";
+import * as _ from "lodash-es";
 
 import { Camera } from "@element-plus/icons-vue";
+import UserAPI, {
+  EmailUpdateForm,
+  MobileUpdateForm,
+  PasswordChangeForm,
+  UserInfoResult,
+  UserProfileForm,
+} from "../../api/system/user";
 
-const userProfile = ref<UserProfileVO>({});
+const userProfile = ref<UserInfoResult>({
+  id: "",
+  username: "",
+  nickname: "",
+  type: 1,
+  avatar: "",
+  mobile: "",
+  email: "",
+  createdAt: "",
+});
 
 const enum DialogType {
   ACCOUNT = "account",
@@ -335,10 +328,6 @@ const handleOpenDialog = (type: DialogType) => {
   switch (type) {
     case DialogType.ACCOUNT:
       dialog.title = "账号资料";
-      // 初始化表单数据
-      userProfileForm.id = userProfile.value.id;
-      userProfileForm.nickname = userProfile.value.nickname;
-      userProfileForm.gender = userProfile.value.gender;
       break;
     case DialogType.PASSWORD:
       dialog.title = "修改密码";
@@ -366,20 +355,21 @@ function handleSendMobileCode() {
     ElMessage.error("手机号格式不正确");
     return;
   }
+  ElMessage.success("功能待开发～");
   // 发送短信验证码
-  UserAPI.sendMobileCode(mobileUpdateForm.mobile).then(() => {
-    ElMessage.success("验证码发送成功");
+  // UserAPI.sendMobileCode(mobileUpdateForm.mobile).then(() => {
+  //   ElMessage.success("验证码发送成功");
 
-    // 倒计时 60s 重新发送
-    mobileCountdown.value = 60;
-    mobileTimer.value = setInterval(() => {
-      if (mobileCountdown.value > 0) {
-        mobileCountdown.value -= 1;
-      } else {
-        clearInterval(mobileTimer.value!);
-      }
-    }, 1000);
-  });
+  //   // 倒计时 60s 重新发送
+  //   mobileCountdown.value = 60;
+  //   mobileTimer.value = setInterval(() => {
+  //     if (mobileCountdown.value > 0) {
+  //       mobileCountdown.value -= 1;
+  //     } else {
+  //       clearInterval(mobileTimer.value!);
+  //     }
+  //   }, 1000);
+  // });
 }
 
 /**
@@ -397,52 +387,54 @@ function handleSendEmailCode() {
     return;
   }
 
+  ElMessage.success("功能待开发～");
   // 发送邮箱验证码
-  UserAPI.sendEmailCode(emailUpdateForm.email).then(() => {
-    ElMessage.success("验证码发送成功");
-    // 倒计时 60s 重新发送
-    emailCountdown.value = 60;
-    emailTimer.value = setInterval(() => {
-      if (emailCountdown.value > 0) {
-        emailCountdown.value -= 1;
-      } else {
-        clearInterval(emailTimer.value!);
-      }
-    }, 1000);
-  });
+  // UserAPI.sendEmailCode(emailUpdateForm.email).then(() => {
+  //   ElMessage.success("验证码发送成功");
+  //   // 倒计时 60s 重新发送
+  //   emailCountdown.value = 60;
+  //   emailTimer.value = setInterval(() => {
+  //     if (emailCountdown.value > 0) {
+  //       emailCountdown.value -= 1;
+  //     } else {
+  //       clearInterval(emailTimer.value!);
+  //     }
+  //   }, 1000);
+  // });
 }
 
 /**
  * 提交表单
  */
 const handleSubmit = async () => {
+  ElMessage.success("功能待开发～");
   if (dialog.type === DialogType.ACCOUNT) {
-    UserAPI.updateProfile(userProfileForm).then(() => {
-      ElMessage.success("账号资料修改成功");
-      dialog.visible = false;
-      loadUserProfile();
-    });
+    // UserAPI.updateProfile(userProfileForm).then(() => {
+    //   ElMessage.success("账号资料修改成功");
+    //   dialog.visible = false;
+    //   loadUserProfile();
+    // });
   } else if (dialog.type === DialogType.PASSWORD) {
-    if (passwordChangeForm.newPassword !== passwordChangeForm.confirmPassword) {
-      ElMessage.error("两次输入的密码不一致");
-      return;
-    }
-    UserAPI.changePassword(passwordChangeForm).then(() => {
-      ElMessage.success("密码修改成功");
-      dialog.visible = false;
-    });
+    // if (passwordChangeForm.newPassword !== passwordChangeForm.confirmPassword) {
+    //   ElMessage.error("两次输入的密码不一致");
+    //   return;
+    // }
+    // UserAPI.changePassword(passwordChangeForm).then(() => {
+    //   ElMessage.success("密码修改成功");
+    //   dialog.visible = false;
+    // });
   } else if (dialog.type === DialogType.MOBILE) {
-    UserAPI.bindOrChangeMobile(mobileUpdateForm).then(() => {
-      ElMessage.success("手机号绑定成功");
-      dialog.visible = false;
-      loadUserProfile();
-    });
+    // UserAPI.bindOrChangeMobile(mobileUpdateForm).then(() => {
+    //   ElMessage.success("手机号绑定成功");
+    //   dialog.visible = false;
+    //   loadUserProfile();
+    // });
   } else if (dialog.type === DialogType.EMAIL) {
-    UserAPI.bindOrChangeEmail(emailUpdateForm).then(() => {
-      ElMessage.success("邮箱绑定成功");
-      dialog.visible = false;
-      loadUserProfile();
-    });
+    // UserAPI.bindOrChangeEmail(emailUpdateForm).then(() => {
+    //   ElMessage.success("邮箱绑定成功");
+    //   dialog.visible = false;
+    //   loadUserProfile();
+    // });
   }
 };
 
@@ -455,16 +447,18 @@ const triggerFileUpload = () => {
 const handleFileChange = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files ? target.files[0] : null;
+  console.log("file-------", file);
   if (file) {
     // 调用文件上传API
     try {
-      const data = await FileAPI.uploadFile(file);
-      // 更新用户头像
-      userProfile.value.avatar = data.url;
+      // const data = await FileAPI.uploadFile(file);
+      // // 更新用户头像
+      // userProfile.value.avatar = data.url;
       // 更新用户信息
-      await UserAPI.updateProfile({
-        avatar: data.url,
-      });
+      // await UserAPI.updateProfile({
+      //   avatar: data.url,
+      // });
+      ElMessage.success("功能待开发～");
     } catch (error) {
       console.error("头像上传失败：" + error);
       ElMessage.error("头像上传失败");
@@ -474,8 +468,11 @@ const handleFileChange = async (event: Event) => {
 
 /** 加载用户信息 */
 const loadUserProfile = async () => {
-  const data = await UserAPI.getProfile();
+  // const data = await UserAPI.getProfile();
+  const data = await UserAPI.info();
   userProfile.value = data;
+  userProfile.value.avatar =
+    "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif";
 };
 
 onMounted(async () => {

@@ -1,24 +1,34 @@
+<!-- 字典 -->
 <template>
   <div class="app-container">
     <div class="search-bar">
       <el-form ref="queryFormRef" :model="queryParams" :inline="true">
-        <el-form-item prop="word" label="关键字">
+        <el-form-item label="关键字" prop="word">
           <el-input
             v-model="queryParams.word"
-            placeholder="用户名/昵称"
+            placeholder="容器名称"
             clearable
             @keyup.enter="handleQuery"
           />
         </el-form-item>
-        <el-form-item prop="status" label="用户状态">
-          <el-select v-model="queryParams.status" class="!w-[100px]" clearable placeholder="全部">
-            <el-option :value="1" label="正常" />
-            <el-option :value="2" label="禁用" />
+        <el-form-item label="设备ID" prop="deviceId">
+          <el-input
+            v-model="queryParams.deviceId"
+            placeholder="设备ID"
+            clearable
+            @keyup.enter="handleQuery"
+          />
+        </el-form-item>
+        <el-form-item label="容器状态" prop="state">
+          <el-select v-model="queryParams.state" class="!w-[100px]" clearable placeholder="全部">
+            <el-option value="created" label="已经创建" />
+            <el-option value="running" label="正在运行" />
+            <el-option value="exited" label="停止" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" icon="search" @click="handleQuery">搜索</el-button>
-          <el-button icon="refresh" @click="handleResetQuery">重置</el-button>
+          <el-button type="primary" icon="search" @click="handleQuery()">搜索</el-button>
+          <el-button icon="refresh" @click="handleResetQuery()">重置</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -32,35 +42,25 @@
       </div>
       <el-table
         v-loading="loading"
-        size="small"
-        :data="pageData"
         highlight-current-row
+        :data="tableData"
         border
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="ID" prop="id" width="140" />
-        <el-table-column label="用户名" prop="username" width="140" />
-        <el-table-column label="昵称" prop="nickname" width="140" />
-        <el-table-column label="角色" prop="type" width="100">
+        <el-table-column label="ID" prop="id" width="170" />
+        <el-table-column label="设备ID" prop="cloudDeviceId" width="170" />
+        <el-table-column label="容器名称" prop="name" width="130" />
+        <el-table-column label="Index" prop="index" width="70" />
+        <el-table-column label="容器IP" prop="host" width="120" />
+        <el-table-column label="容器状态" prop="state" width="100">
           <template #default="scope">
-            <el-tag :type="scope.row.type === UserType.SuperAdmin ? 'warning' : 'primary'">
-              {{ renderType(scope.row.type) }}
+            <el-tag :type="renderStateType(scope.row.state)">
+              {{ renderState(scope.row.state) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="状态" prop="status" width="100">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === EntityStatus.Normal ? 'primary' : 'warning'">
-              {{ renderStatus(scope.row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="添加时间" prop="createdAt" width="150">
-          <template #default="scope">
-            {{ dayjs(+scope.row.createdAt * 1000).format("YYYY/MM/DD HH:mm:ss") }}
-          </template>
-        </el-table-column>
+        <el-table-column label="状态信息" prop="stateMsg" width="100" />
         <el-table-column label="操作" align="center" width="150">
           <template #default="scope">
             <el-button
@@ -83,6 +83,7 @@
             </el-button>
           </template>
         </el-table-column>
+        <el-table-column fixed="right" label="文件路径" prop="data" />
       </el-table>
 
       <pagination
@@ -98,55 +99,37 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "User",
-  inheritAttrs: false,
+  name: "Container",
+  inherititems: false,
 });
 
-import dayjs from "dayjs";
-import { EntityStatus } from "../../../api/common";
-import UserAPI, { UserListParam, UserListResult, UserType } from "../../../api/system/user";
+import DevicePoolAPI, {
+  ContainerListParam,
+  ContainerListResult,
+  StateType,
+} from "../../../api/device-pool";
 
 const queryFormRef = ref();
 
-const ids = ref<string[]>([]);
 const loading = ref(false);
+const ids = ref<number[]>([]);
 const total = ref(0);
 
-const queryParams = reactive<UserListParam>({
+const queryParams = reactive<ContainerListParam>({
   page: 1,
   size: 20,
   word: "",
-  status: EntityStatus.Normal,
+  deviceId: "",
+  // state: StateType.Running,
 });
 
-const pageData = ref<UserListResult[]>();
+const tableData = ref<ContainerListResult[]>();
 
-function renderStatus(status: EntityStatus) {
-  switch (status) {
-    case EntityStatus.Normal:
-      return "正常";
-    case EntityStatus.Disable:
-      return "禁用";
-    default:
-      return "未知";
-  }
-}
-
-function renderType(type: UserType) {
-  switch (type) {
-    case UserType.Admin:
-      return "管理员";
-    case UserType.SuperAdmin:
-      return "超级管理员";
-    default:
-      return "未知";
-  }
-}
 function handleQuery() {
   loading.value = true;
-  UserAPI.list(queryParams)
+  DevicePoolAPI.containerList(queryParams)
     .then((data) => {
-      pageData.value = data.list;
+      tableData.value = data.list;
       total.value = data.total;
     })
     .finally(() => {
@@ -158,19 +141,24 @@ function handleResetQuery() {
   queryFormRef.value.resetFields();
   queryParams.page = 1;
   queryParams.size = 20;
-  queryParams.word = "";
-  delete queryParams.status;
+  delete queryParams.state;
   handleQuery();
 }
 
-onMounted(() => {
-  handleQuery();
-});
+function handleSelectionChange(selection: any) {
+  ids.value = selection.map((item: any) => item.id);
+}
 
+// 新增字典
 function handleAddClick() {
   ElMessage.success("待开发～");
 }
 
+/**
+ * 编辑字典
+ *
+ * @param id 字典ID
+ */
 function handleEditClick(id: number) {
   // TODO 编辑接口
   console.log("id---", id);
@@ -198,8 +186,34 @@ function handleDelete(id?: number) {
     }
   );
 }
-// 行选择
-function handleSelectionChange(selection: any) {
-  ids.value = selection.map((item: any) => item.id);
+
+function renderState(state: StateType) {
+  switch (state) {
+    case StateType.Created:
+      return "已创建";
+    case StateType.Exited:
+      return "停止";
+    case StateType.Running:
+      return "正在运行";
+    default:
+      return "未知";
+  }
 }
+
+function renderStateType(state: StateType) {
+  switch (state) {
+    case StateType.Created:
+      return "info";
+    case StateType.Exited:
+      return "danger";
+    case StateType.Running:
+      return "success";
+    default:
+      return "info";
+  }
+}
+
+onMounted(() => {
+  handleQuery();
+});
 </script>

@@ -16,7 +16,7 @@ export const hasPerm: Directive = {
       );
     }
 
-    const { roles, perms } = useUserStore().userInfo;
+    const { roles = [], perms = [] } = useUserStore().userInfo;
 
     // 超级管理员拥有所有权限
     if (roles.includes("ROOT")) {
@@ -49,7 +49,7 @@ export const hasRole: Directive = {
       );
     }
 
-    const { roles } = useUserStore().userInfo;
+    const { roles = [] } = useUserStore().userInfo;
 
     // 检查是否有对应角色权限
     const hasAuth = Array.isArray(requiredRoles)

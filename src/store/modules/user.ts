@@ -1,28 +1,17 @@
 import { store } from "@/store";
 import { usePermissionStoreHook } from "@/store/modules/permission";
-import { useDictStoreHook } from "@/store/modules/dict";
-
-import AuthAPI, { type LoginFormData } from "@/api/auth";
-import UserAPI, { type UserInfo } from "@/api/system/user";
-
-import { setAccessToken, setRefreshToken, getRefreshToken, clearToken } from "@/utils/auth";
+import { setAccessToken, clearToken } from "@/utils/auth";
+import UserAPI, { LoginData, UserInfoResult } from "../../api/system/user";
 
 export const useUserStore = defineStore("user", () => {
-  const userInfo = useStorage<UserInfo>("userInfo", {} as UserInfo);
+  const userInfo = useStorage<UserInfoResult>("userInfo", {} as UserInfoResult);
 
-  /**
-   * 登录
-   *
-   * @param {LoginFormData}
-   * @returns
-   */
-  function login(LoginFormData: LoginFormData) {
+  function login(loginData: LoginData) {
     return new Promise<void>((resolve, reject) => {
-      AuthAPI.login(LoginFormData)
+      UserAPI.login(loginData)
         .then((data) => {
-          const { accessToken, refreshToken } = data;
-          setAccessToken(accessToken); // eyJhbGciOiJIUzI1NiJ9.xxx.xxx
-          setRefreshToken(refreshToken);
+          const { token } = data;
+          setAccessToken(token);
           resolve();
         })
         .catch((error) => {
@@ -31,19 +20,15 @@ export const useUserStore = defineStore("user", () => {
     });
   }
 
-  /**
-   * 获取用户信息
-   *
-   * @returns {UserInfo} 用户信息
-   */
   function getUserInfo() {
-    return new Promise<UserInfo>((resolve, reject) => {
-      UserAPI.getInfo()
+    return new Promise<UserInfoResult>((resolve, reject) => {
+      UserAPI.info()
         .then((data) => {
           if (!data) {
             reject("Verification failed, please Login again.");
             return;
           }
+          data.avatar = "https://foruda.gitee.com/images/1723603502796844527/03cdca2a_716974.gif";
           Object.assign(userInfo.value, { ...data });
           resolve(data);
         })
@@ -53,12 +38,9 @@ export const useUserStore = defineStore("user", () => {
     });
   }
 
-  /**
-   * 登出
-   */
   function logout() {
     return new Promise<void>((resolve, reject) => {
-      AuthAPI.logout()
+      UserAPI.logout()
         .then(() => {
           clearUserData();
           resolve();
@@ -69,36 +51,10 @@ export const useUserStore = defineStore("user", () => {
     });
   }
 
-  /**
-   * 刷新 token
-   */
-  function refreshToken() {
-    const refreshToken = getRefreshToken();
-    return new Promise<void>((resolve, reject) => {
-      AuthAPI.refreshToken(refreshToken)
-        .then((data) => {
-          const { accessToken, refreshToken } = data;
-          setAccessToken(accessToken);
-          setRefreshToken(refreshToken);
-          resolve();
-        })
-        .catch((error) => {
-          console.log(" refreshToken  刷新失败", error);
-          reject(error);
-        });
-    });
-  }
-
-  /**
-   * 清理用户数据
-   *
-   * @returns
-   */
   function clearUserData() {
     return new Promise<void>((resolve) => {
       clearToken();
       usePermissionStoreHook().resetRouter();
-      useDictStoreHook().clearDictionaryCache();
       resolve();
     });
   }
@@ -109,7 +65,6 @@ export const useUserStore = defineStore("user", () => {
     login,
     logout,
     clearUserData,
-    refreshToken,
   };
 });
 

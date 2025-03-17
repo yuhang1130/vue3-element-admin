@@ -1,8 +1,8 @@
 {
   "typescript.tsdk": "./node_modules/typescript/lib",
-  "npm.packageManager": "pnpm",
+  "npm.packageManager": "npm",
   "editor.tabSize": 2,
-	"editor.formatOnSave": true,
+	"editor.formatOnSave": false,
 	"editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.quickSuggestions": {
     "other": true,
@@ -77,5 +77,8 @@
   "i18n-ally.localesPaths": [
     "src/lang"
   ],
-  "scss.lint.unknownAtRules": "ignore"
+  "scss.lint.unknownAtRules": "ignore",
+  "[dotenv]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format"
+  }
 }

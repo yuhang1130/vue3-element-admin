@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: socialflow
+  name: manage-client
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: manage-client.sf.lightai.cn
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: client
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - manage-client.sf.lightai.cn
+      secretName: manage-client.sf.lightai.cn-tls

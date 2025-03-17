@@ -1,42 +1,41 @@
 <template>
-  <el-drawer v-model="settingsVisible" size="300" :title="$t('settings.project')">
-    <el-divider>{{ $t("settings.theme") }}</el-divider>
+  <el-drawer v-model="settingsVisible" size="300" title="项目配置">
+    <el-divider>{{ "主题设置" }}</el-divider>
 
     <div class="flex-center">
       <el-switch v-model="isDark" active-icon="Moon" inactive-icon="Sunny" @change="changeTheme" />
     </div>
 
-    <el-divider>{{ $t("settings.interface") }}</el-divider>
+    <el-divider>{{ "界面设置" }}</el-divider>
 
     <div class="py-1 flex-x-between">
-      <span class="text-xs">{{ $t("settings.themeColor") }}</span>
+      <span class="text-xs">{{ "主题颜色" }}</span>
       <ThemeColorPicker v-model="settingsStore.themeColor" @update:model-value="changeThemeColor" />
     </div>
 
     <div class="py-1 flex-x-between">
-      <span class="text-xs">{{ $t("settings.tagsView") }}</span>
+      <span class="text-xs">{{ "开启 Tags-View" }}</span>
       <el-switch v-model="settingsStore.tagsView" />
     </div>
 
     <div class="py-1 flex-x-between">
-      <span class="text-xs">{{ $t("settings.sidebarLogo") }}</span>
+      <span class="text-xs">{{ "侧边栏 Logo" }}</span>
       <el-switch v-model="settingsStore.sidebarLogo" />
     </div>
 
     <div class="py-1 flex-x-between">
-      <span class="text-xs">{{ $t("settings.watermark") }}</span>
+      <span class="text-xs">{{ "开启水印" }}</span>
       <el-switch v-model="settingsStore.watermarkEnabled" />
     </div>
     <div v-if="!isDark" class="py-1 flex-x-between">
-      <span class="text-xs">{{ $t("settings.sidebarColorScheme") }}</span>
+      <span class="text-xs">{{ "侧边栏配色方案" }}</span>
       <el-radio-group v-model="settingsStore.sidebarColorScheme" @change="changeSidebarColorScheme">
-        <el-radio :value="SidebarLightThemeEnum.WHITE">{{ $t("settings.white") }}</el-radio>
-        <el-radio :value="SidebarLightThemeEnum.DARKBLUE">{{ $t("settings.darkBlue") }}</el-radio>
+        <el-radio :value="SidebarLightThemeEnum.WHITE">{{ "白色" }}</el-radio>
+        <el-radio :value="SidebarLightThemeEnum.DARKBLUE">{{ "深蓝色" }}</el-radio>
       </el-radio-group>
     </div>
 
-    <el-divider>{{ $t("settings.navigation") }}</el-divider>
-
+    <el-divider>{{ "导航设置" }}</el-divider>
     <LayoutSelect v-model="settingsStore.layout" @update:model-value="changeLayout" />
   </el-drawer>
 </template>
@@ -96,7 +95,7 @@ const changeSidebarColorScheme = (val: any) => {
  *
  * @param layout 布局  LayoutEnum
  */
-function changeLayout(layout: string) {
+function changeLayout(layout: LayoutEnum) {
   settingsStore.changeLayout(layout);
   if (layout === LayoutEnum.MIX) {
     route.name && againActiveTop(route.name as string);

@@ -1,0 +1,13 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: manage-client
+  namespace: socialflow
+spec:
+  selector:
+    app:  manage-client
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

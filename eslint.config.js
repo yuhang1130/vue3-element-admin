@@ -56,9 +56,6 @@ export default [
       ],
     },
   },
-  // JavaScript 配置
-  pluginJs.configs.recommended,
-
   // TypeScript 配置
   {
     files: ["**/*.ts"],

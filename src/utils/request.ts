@@ -8,7 +8,7 @@ import router from "@/router";
 // 创建 axios 实例
 const service = axios.create({
   baseURL: import.meta.env.VITE_APP_BASE_API,
-  timeout: 50000,
+  timeout: 60000,
   headers: { "Content-Type": "application/json;charset=utf-8" },
   paramsSerializer: (params) => qs.stringify(params),
 });
@@ -36,79 +36,35 @@ service.interceptors.response.use(
       return response;
     }
 
-    const { code, data, msg } = response.data;
-    if (code === ResultEnum.SUCCESS) {
+    const { code, data, message } = response.data;
+    if (code === ResultEnum.Success) {
       return data;
+    } else if (code === ResultEnum.NoLogin) {
+      ElNotification({
+        title: "提示",
+        message: "您的会话已过期，请重新登录",
+        type: "info",
+      });
+      useUserStoreHook()
+        .clearUserData()
+        .then(() => {
+          router.push("/login");
+        });
+    } else {
+      ElMessage.error(message || "系统出错");
+      return Promise.reject(new Error(message || "Error"));
     }
-
-    ElMessage.error(msg || "系统出错");
-    return Promise.reject(new Error(msg || "Error"));
   },
   async (error) => {
     console.error("request error", error); // for debug
     // 非 2xx 状态码处理 401、403、500 等
-    const { config, response } = error;
+    const { response } = error;
     if (response) {
-      const { code, msg } = response.data;
-      if (code === ResultEnum.ACCESS_TOKEN_INVALID) {
-        // Token 过期，刷新 Token
-        return handleTokenRefresh(config);
-      } else if (code === ResultEnum.REFRESH_TOKEN_INVALID) {
-        return Promise.reject(new Error(msg || "Error"));
-      } else {
-        ElMessage.error(msg || "系统出错");
-      }
+      const { code, message } = response.data;
+      ElMessage.error(message || "系统出错");
     }
     return Promise.reject(error.message);
   }
 );
 
 export default service;
-
-// 是否正在刷新标识，避免重复刷新
-let isRefreshing = false;
-// 因 Token 过期导致的请求等待队列
-const waitingQueue: Array<() => void> = [];
-
-// 刷新 Token 处理
-async function handleTokenRefresh(config: InternalAxiosRequestConfig) {
-  return new Promise((resolve) => {
-    // 封装需要重试的请求
-    const retryRequest = () => {
-      config.headers.Authorization = getAccessToken();
-      resolve(service(config));
-    };
-
-    waitingQueue.push(retryRequest);
-
-    if (!isRefreshing) {
-      isRefreshing = true;
-
-      // 刷新 Token
-      useUserStoreHook()
-        .refreshToken()
-        .then(() => {
-          // 依次重试队列中所有请求, 重试后清空队列
-          waitingQueue.forEach((callback) => callback());
-          waitingQueue.length = 0;
-        })
-        .catch((error: any) => {
-          console.log("handleTokenRefresh error", error);
-          // 刷新 Token 失败，跳转登录页
-          ElNotification({
-            title: "提示",
-            message: "您的会话已过期，请重新登录",
-            type: "info",
-          });
-          useUserStoreHook()
-            .clearUserData()
-            .then(() => {
-              router.push("/login");
-            });
-        })
-        .finally(() => {
-          isRefreshing = false;
-        });
-    }
-  });
-}
